@@ -59,114 +59,98 @@ Wordle. The final product should match the following specifications:
     - Next I will scaffold the ui
     - Then figure out states and game logic
 
-  End: 2/27/26 11:24 AM
+  End: 2/7/26 11:24 AM
+
+  Start: 2/7/26 1:52 PM
+
+  Corrections, seems overcomplicated, focus on deriving computation, keep states simple
 */
 
 const API_URL = 'https://api.jsonbin.io/v3/b/5f604035302a837e956685ac'
-const DEFAULT_LENGTH = 5
-const DEFAULT_ANSWER = 'COLOR'
 
-type GuessedColor = 'green' | 'yellow' | 'white'
 
-type GuessedLetter = {
-  letter: string,
-  color: GuessedColor
-}
-
-const useFetchAnswer = () => {
+// Not to overcomplicate logic, strip it out and use one hook
+const useWordle = () => {
+  const [guesses, setGuesses] = useState<string[]>([])
   const [answer, setAnswer] = useState('')
+  const guessesSet = useMemo(() => new Set(guesses), [guesses])
 
   useEffect(() => {
-    let mountedFlag = true
+    let isMounted = true
     const fetchAnswer = async () => {
       try {
         const resp = await fetch(API_URL)
         const data = await resp.json()
         const words = data.record;
-        if (mountedFlag) {
-          setAnswer(words[Math.floor(Math.random() * words.length)])
+        const randomWord = words[Math.floor(Math.random() * words.length)];
+        if (isMounted) {
+          setAnswer(randomWord)
         }
       } catch (error) {
-        console.log("Error while fetching")
+        console.log("An error has occurred while fetching")
       }
     }
     fetchAnswer()
-    return () => { mountedFlag = false }
+    return () => { isMounted = false }
   }, [])
 
-  return answer
+  const addGuess = (guess: string) => {
+    if (guess.length !== answer.length || guessesSet.has(guess)) {
+      return
+    }
+    setGuesses(prev => [...prev, guess])
+  }
+
+  const hasGuess = (guess: string) => {
+    return guessesSet.has(guess)
+  }
+
+  return { guesses, answer, addGuess, hasGuess }
 }
 
-const useWordleEngine = (answer = DEFAULT_ANSWER, length = DEFAULT_LENGTH) => {
-  const [guesses, setGuesses] = useState<GuessedLetter[][]>([])
-  const [guessedSet, setGuessedSet] = useState<Set<string>>(new Set())
+const WordleBoard = () => {
+  const { guesses, answer, addGuess, hasGuess } = useWordle()
+  const [input, setInput] = useState('')
 
+  const canSubmit = useMemo(() => answer.length > 0 && input.length === answer.length && !hasGuess(input), [input])
 
-  const getColor = (idx: number, letter: string): GuessedColor => {
-    if (letter === answer[idx]) {
+  // is this the best area for helper?
+  const getColor = (guessedLetter: string, idx: number) => {
+    if (guessedLetter === answer[idx]) {
       return 'green'
-    } else if (answer.includes(letter)) {
-      return 'yellow'
+    } else if (answer.includes(guessedLetter)) {
+      return 'yellow' //not concerned with frequency
     }
     return 'white'
   }
 
-  const alreadyGuessed = (guess: string) => guessedSet.has(guess)
-
-  const submitGuess = (guess: string) => {
-    if (guess.length !== length || alreadyGuessed(guess)) {
-      return
-    }
-    setGuessedSet(prev => new Set([...prev, guess]))
-    const curGuessArr: GuessedLetter[] = []
-    for (let i = 0; i < guess.length; i++) {
-      curGuessArr.push({ letter: guess[i], color: getColor(i, guess[i]) })
-    }
-    setGuesses(prev => [...prev, curGuessArr])
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInput(e.target.value.toLocaleUpperCase())
   }
-
-  return { guesses, alreadyGuessed, submitGuess }
-}
-
-const WordleBoard = () => {
-  const answer = useFetchAnswer()
-  const { guesses, alreadyGuessed, submitGuess } = useWordleEngine(answer)
-  const [input, setInput] = useState('')
-
-  const canSubmit = useMemo(() => input.length === DEFAULT_LENGTH && !alreadyGuessed(input), [input])
-
-  const handleInputChange = (e) => {
-    setInput(e.target.value.toUpperCase())
-  }
-
   const handleSubmit = () => {
-    submitGuess(input)
+    addGuess(input)
+    setInput('')
   }
 
   return (<div>
     <h1>Wordle</h1>
     <div>
-      {guesses.map((guess, index) => (
-        <div key={index}>
-          {guess.map((letter, i) => (
-            <span key={i} style={{ color: letter.color }}>
-              {letter.letter}
-            </span>
-          ))}
-        </div>
-      ))}
+      {guesses?.map(guess => <div key={guess}>
+        {[...guess].map((letter, i) => <span key={`${guess}_${i}${letter}`} style={{ color: getColor(letter, i) }}>{letter}</span>)}
+      </div>)}
     </div>
     <div>
-      <input
-        type="text"
-        maxLength={DEFAULT_LENGTH}
-        minLength={DEFAULT_LENGTH}
-        value={input}
-        onChange={handleInputChange}
-      />
-      <button disabled={!canSubmit} onClick={handleSubmit}>Submit</button>
+      <div>
+        <input
+          type="text"
+          maxLength={answer.length}
+          minLength={answer.length}
+          value={input}
+          onChange={handleInputChange}
+        />
+        <button disabled={!canSubmit} onClick={handleSubmit}>Submit</button>
+      </div>
     </div>
-
   </div>)
 };
 
