@@ -47,8 +47,8 @@ type User = any
 const useDebounce = (input: string, delay = DEFAULT_DELAY) => {
     const [debouncedInput, setDebouncedInput] = useState('')
     useEffect(() => {
-        const intervalId = setInterval(() => { setDebouncedInput(input) }, delay)
-        return () => clearInterval(intervalId)
+        const timeoutId = setTimeout(() => { setDebouncedInput(input) }, delay)
+        return () => clearTimeout(timeoutId)
     }, [input])
 
     return debouncedInput
