@@ -1,0 +1,22 @@
+.container {
+    display: flex;
+    width: 100vw;
+}
+
+.wordle {
+    margin: 3px 3px;
+    padding: 8px 8px;
+    width: 46%;
+    background-color: #2a2f38;
+    border: 3px solid rgb(1, 1, 48);
+    border-radius: 5px;
+}
+
+.autocomplete {
+    margin: 3px 3px;
+    padding: 8px 8px;
+    width: 46%;
+    background-color: #2a2f38;
+    border: 3px solid rgb(1, 1, 48);
+    border-radius: 5px;
+}
