@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { evaluateGuess } from "../utils/wordle.helpers";
 import { DEFAULT_WORDS_API } from "../assets/constants";
 
 // should only be responsible for game mechanics, not ui
@@ -10,6 +11,17 @@ const useWordle = () => {
   ); //define types in diff area
   // not sure if worthwhile to build out a set
   const guessesSet = useMemo(() => new Set(guesses), [guesses]);
+  const evaluatedGuesses = useMemo(() => {
+    if (!answer) return [];
+
+    return guesses.map((guess) => ({
+      word: guess,
+      letters: guess.split("").map((char, i) => ({
+        char,
+        state: evaluateGuess(guess, answer)[i],
+      })),
+    }));
+  }, [guesses, answer]);
 
   // to not expose the set directly
   const hasGuess = (guess: string) => guessesSet.has(guess);
@@ -42,6 +54,7 @@ const useWordle = () => {
         const randomWord = words[Math.floor(Math.random() * words.length)];
         if (mounted) {
           setAnswer(randomWord);
+          setStatus("play");
         }
       } catch (error: any) {
         // maybe figure this out?
@@ -52,8 +65,6 @@ const useWordle = () => {
           console.log(error);
         }
         setStatus("error");
-      } finally {
-        setStatus("play");
       }
     };
     fetchWord();
@@ -63,7 +74,7 @@ const useWordle = () => {
     };
   }, []);
 
-  return { answer, status, guesses, hasGuess, addGuess };
+  return { answer, status, guesses, evaluatedGuesses, hasGuess, addGuess };
 };
 
 export default useWordle;

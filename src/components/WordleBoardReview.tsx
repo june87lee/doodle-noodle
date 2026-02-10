@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { DEFAULT_COLOR_MAP } from "../assets/constants";
 import useWordle from "../hooks/useWordle";
 
 /*
@@ -48,7 +49,7 @@ Wordle. The final product should match the following specifications:
 
 */
 const WordleBoard = () => {
-  const { guesses, addGuess, hasGuess, answer, status } = useWordle();
+  const { evaluatedGuesses, addGuess, hasGuess, answer, status } = useWordle();
   const [input, setInput] = useState("");
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -92,8 +93,17 @@ const WordleBoard = () => {
         <button onClick={() => handleSubmit()}>Submit</button>
       </div>
       <div>
-        {guesses.map((guess, index) => (
-          <div key={index}>{guess}</div>
+        {evaluatedGuesses.map(({ word, letters }, index) => (
+          <div key={`${word}_${index}`}>
+            {letters.map(({ char, state }, jdx) => (
+              <span
+                key={`${word}_${index}_${char}_${jdx}`}
+                style={{ color: DEFAULT_COLOR_MAP[state] }}
+              >
+                {char}
+              </span>
+            ))}
+          </div>
         ))}
       </div>
     </div>
