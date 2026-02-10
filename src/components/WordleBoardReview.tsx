@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { DEFAULT_COLOR_MAP } from "../assets/constants";
 import useWordle from "../hooks/useWordle";
 
