@@ -14,13 +14,16 @@ const useWordle = () => {
   const evaluatedGuesses = useMemo(() => {
     if (!answer) return [];
 
-    return guesses.map((guess) => ({
-      word: guess,
-      letters: guess.split("").map((char, i) => ({
-        char,
-        state: evaluateGuess(guess, answer)[i],
-      })),
-    }));
+    return guesses.map((guess) => {
+      const states = evaluateGuess(guess, answer);
+      return {
+        word: guess,
+        letters: guess.split("").map((char, i) => ({
+          char,
+          state: states[i],
+        })),
+      };
+    });
   }, [guesses, answer]);
 
   // to not expose the set directly

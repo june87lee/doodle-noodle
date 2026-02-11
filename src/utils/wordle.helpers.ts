@@ -2,24 +2,34 @@ export type LetterState = "correct" | "present" | "absent"; // maybe in it's own
 
 export function evaluateGuess(guess: string, answer: string): LetterState[] {
   const result: LetterState[] = Array(guess.length).fill("absent");
-  const answerChars = answer.split("");
+  const answerFreq: Record<string, number> = {};
+
+  for (const char of answer) {
+    answerFreq[char] = (answerFreq[char] || 0) + 1;
+  }
 
   for (let i = 0; i < guess.length; i++) {
-    if (guess[i] === answerChars[i]) {
+    if (guess[i] === answer[i]) {
       result[i] = "correct";
-      answerChars[i] = "_"; // mark as used
+      answerFreq[guess[i]] = answerFreq[guess[i]] - 1;
     }
   }
 
   for (let i = 0; i < guess.length; i++) {
     if (result[i] === "correct") continue;
 
-    const idx = answerChars.indexOf(guess[i]);
-    if (idx !== -1) {
+    if (answerFreq[guess[i]] > 0) {
       result[i] = "present";
-      answerChars[idx] = "_";
+      answerFreq[guess[i]] = answerFreq[guess[i]] - 1;
     }
   }
 
   return result;
+}
+
+export function evaluateGuesses(
+  guesses: string[],
+  answer: string,
+): LetterState[][] {
+  return guesses.map((guess) => evaluateGuess(guess, answer));
 }
