@@ -1,8 +1,4 @@
-// import WordleBoard from "./components/WordleBoard";
-// import WordleBoard from "./components/WordleBoardTwo"
-// import AutoComplete from "./components/AutoComplete";
-// import Review from "./components/Review";
-import WordleBoard from "./components/WordleBoardReview";
+import WordleBoard from "./components/WordleBoard";
 
 function App() {
   return (
